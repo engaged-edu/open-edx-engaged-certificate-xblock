@@ -17,5 +17,17 @@
 
 .input-width {
     width: 110%;
+    
+}
+
+.input-margin {
     margin: 10px;
+}
+
+.success {
+    color: green;
+}
+
+.error {
+    color: red;
 }

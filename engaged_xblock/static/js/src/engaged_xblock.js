@@ -9,19 +9,6 @@ function EngagEDXBlock(runtime, element) {
 
     function onSuccessInit(result) {
         $('#request-content', element).html(result.request_content_html);
-
-        $('.request-certificate', element).click(function(eventObject) {
-            // const lead_full_name = $('#student-name').val();
-            // console.log(lead_full_name)
-            // $.ajax({
-            //     type: "POST",
-            //     url: handlerUrl,
-            //     data: JSON.stringify({"custom_fields": {
-            //         "lead_full_name": lead_full_name
-            //     }}),
-            //     success: updateData
-            // });
-        });
         document.getElementById("request-content").onsubmit = request_certificate;
     }
 

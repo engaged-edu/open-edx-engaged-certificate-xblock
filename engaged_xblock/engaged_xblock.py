@@ -52,7 +52,7 @@ class EngagEDXBlock(XBlock):
         help="HTML apresentado antes de ter solicitado o certificado, utilizado em uma variavel para poder atualizar",
         default="""
             <div class="flex-center">
-                <input class="input-width" type="text" id="student-name" placeholder="Seu nome para o certificado" maxlength="32" required />
+                <input class="input-width input-margin" type="text" id="student-name" placeholder="Seu nome para o certificado" maxlength="32" required />
             </div>
             <button type="submit" class="request-certificate">Solicitar Certificado</button>
         """,
@@ -75,7 +75,6 @@ class EngagEDXBlock(XBlock):
         template_str = self.load_resource(template_path)
         return Template(template_str).render(Context(context))
 
-    # TO-DO: change this view to display your data your own way.
     def student_view(self, context=None):
         """
         View principal do XBlock, como aparece para os alunos.
@@ -94,29 +93,40 @@ class EngagEDXBlock(XBlock):
         frag.initialize_js("EngagEDXBlock")
         return frag
 
-    # def studio_view(self, context=None):
-    #     """
-    #     The primary view of the EngagEDXBlock, shown to administrators on edit mode
-    #     when viewing courses.
-    #     """
-    #     html = self.resource_string("static/html/certificate_studio_view.html")
-    #     frag = Fragment(html.format(self=self))
-    #     frag.add_css(self.resource_string("static/css/engaged_xblock.css"))
-    #     frag.add_javascript(self.resource_string("static/js/src/engaged_xblock.js"))
-    #     frag.initialize_js("EngagEDXBlock")
-    #     return frag
+    def studio_view(self, context=None):
+        """
+        The primary view of the EngagEDXBlock, shown to administrators on edit mode
+        when viewing courses.
+        """
+        context = {
+            "certificate_page_url": self.certificate_page_url,
+            "certificate_template_id": self.certificate_template_id,
+        }
+        html = self.render_template("static/html/certificate_studio_view.html", context)
 
-    # def author_view(self, context=None):
-    #     """
-    #     The primary view of the EngagEDXBlock, shown to administrators on preview mode
-    #     when viewing courses.
-    #     """
-    #     html = self.resource_string("static/html/engaged_xblock.html")
-    #     frag = Fragment(html.format(self=self))
-    #     frag.add_css(self.resource_string("static/css/engaged_xblock.css"))
-    #     frag.add_javascript(self.resource_string("static/js/src/engaged_xblock.js"))
-    #     frag.initialize_js("EngagEDXBlock")
-    #     return frag
+        frag = Fragment(html)
+        frag.add_css(self.load_resource("static/css/engaged_xblock.css"))
+        frag.add_javascript(
+            self.load_resource("static/js/src/engaged_xblock_studio.js")
+        )
+        frag.initialize_js("EngagEDXBlock")
+        return frag
+
+    def author_view(self, context=None):
+        """
+        The primary view of the EngagEDXBlock, shown to administrators on preview mode
+        when viewing courses.
+        """
+        context = {
+            "certificate_page_url": self.certificate_page_url,
+            "certificate_template_id": self.certificate_template_id,
+        }
+        html = self.render_template("static/html/certificate_author_view.html", context)
+        frag = Fragment(html.format(self=self))
+        frag.add_css(self.load_resource("static/css/engaged_xblock.css"))
+        frag.add_javascript(self.load_resource("static/js/src/engaged_xblock.js"))
+        frag.initialize_js("EngagEDXBlock")
+        return frag
 
     @XBlock.json_handler
     def get_component_data(self, data, suffix=""):
@@ -125,6 +135,18 @@ class EngagEDXBlock(XBlock):
         """
         return {
             "request_content_html": self.request_content_html,
+        }
+
+    @XBlock.json_handler
+    def confirm_config(self, data, suffix=""):
+        """
+        Realiza as configurações
+        """
+        self.certificate_page_url = data["certificate_page_url"]
+        self.certificate_template_id = data["certificate_template_id"]
+        return {
+            "certificate_page_url": self.certificate_page_url,
+            "certificate_template_id": self.certificate_template_id,
         }
 
     @XBlock.json_handler

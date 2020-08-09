@@ -1,6 +1,23 @@
 <div class="engaged_xblock_block">
-<p>EngagEDXBlock: count is now
-    <span class='count'>{self.count}</span> (click me to increment).
-    <span>studio</span>
-</p>
+    <form id="config-form">
+        <div>
+            <label for="certificate_page_url" class="input-margin">URL base para gerar o certificado</label>
+            <div>
+                <input id="certificate_page_url" class="input-margin" type="text" placeholder="URL Base" value="{{certificate_page_url}}" required>
+            </div>
+        </div>
+        <div>
+            <label for="certificate_template_id" class="input-margin">Identificador do template dos certificados</label>
+            <div>
+                <input id="certificate_template_id" class="input-margin" type="text" placeholder="ID do template" value="{{certificate_template_id}}" required>
+            </div>
+        </div>
+        <div>
+          <button class="input-margin" type="submit">Confirmar</button>
+        </div>
+
+        <div>
+            <span class="input-margin" id="result-message"></span>
+        </div>
+    </form>
 </div>
