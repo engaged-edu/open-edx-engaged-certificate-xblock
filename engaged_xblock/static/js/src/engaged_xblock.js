@@ -15,7 +15,6 @@ function EngagEDXBlock(runtime, element) {
     function request_certificate(e) {
         e.preventDefault();
         const lead_full_name = $('#student-name').val();
-        console.log(lead_full_name)
         $.ajax({
             type: "POST",
             url: handlerUrl,

@@ -4,7 +4,6 @@ function EngagEDXBlock(runtime, element) {
     var handlerUrl = runtime.handlerUrl(element, 'confirm_config');
 
     function onFinish(result, message, classToAdd) {
-        console.log(result);
         document.getElementById("result-message").innerHTML = message;
         document.getElementById("result-message").classList.add(classToAdd);
     }
@@ -17,7 +16,6 @@ function EngagEDXBlock(runtime, element) {
         e.preventDefault();
         const certificate_page_url = $('#certificate_page_url').val();
         const certificate_template_id = $('#certificate_template_id').val();
-        console.log(certificate_page_url, certificate_template_id)
         runtime.notify('save', {state: 'start'});
         $.ajax({
             type: "POST",

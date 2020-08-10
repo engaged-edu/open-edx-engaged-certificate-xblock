@@ -1,5 +1,3 @@
-"""TO-DO: Write a description of what this XBlock is."""
-
 import pkg_resources
 from django.template import Context, Template
 
@@ -95,8 +93,7 @@ class EngagEDXBlock(XBlock):
 
     def studio_view(self, context=None):
         """
-        The primary view of the EngagEDXBlock, shown to administrators on edit mode
-        when viewing courses.
+        View do XBlock que fica disponivel na tela de edição para o instrutor
         """
         context = {
             "certificate_page_url": self.certificate_page_url,
@@ -114,8 +111,7 @@ class EngagEDXBlock(XBlock):
 
     def author_view(self, context=None):
         """
-        The primary view of the EngagEDXBlock, shown to administrators on preview mode
-        when viewing courses.
+        View do XBlock que fica disponivel na tela de pre-visualização
         """
         context = {
             "certificate_page_url": self.certificate_page_url,
@@ -166,8 +162,6 @@ class EngagEDXBlock(XBlock):
         self.request_content_html = (
             """<p>Certificado solicitado, aguarde e será notificado por e-mail.</p>"""
         )
-
-        # iframe url: {{ certificate_page_url }}/id/{{certificate_request_id }}?error_type=requested
         return {
             "certificate_status": self.certificate_status,
             "certificate_request_id": self.certificate_request_id,
@@ -176,8 +170,6 @@ class EngagEDXBlock(XBlock):
             "request_content_html": self.request_content_html,
         }
 
-    # TO-DO: change this to create the scenarios you'd like to see in the
-    # workbench while developing your XBlock.
     @staticmethod
     def workbench_scenarios():
         """A canned scenario for display in the workbench."""
