@@ -1,0 +1,33 @@
+/* CSS for EngagEDXBlock */
+.engaged_xblock_block p {
+    cursor: pointer;
+}
+
+.engaged_xblock_certificate_iframe {
+    height: 600px;
+    width: 98%;
+}
+
+.flex-center {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.input-width {
+    width: 110%;
+    
+}
+
+.input-margin {
+    margin: 10px;
+}
+
+.success {
+    color: green;
+}
+
+.error {
+    color: red;
+}

@@ -1,0 +1,11 @@
+<div class="engaged_xblock_block">
+<p>
+    {% if certificate_status == "not-requested" %}
+    <form id="request-content" onsubmit="request_certificate" class="flex-center">
+    </form>
+    {% endif %}
+    {% if certificate_status == "requested" %}
+    <iframe class="engaged_xblock_certificate_iframe" src="https://{{certificate_page_url}}/certificados/id/{{certificate_request_id}}?error_type=emission" title="Certificado"></iframe> 
+    {% endif %}
+</p>
+</div>
