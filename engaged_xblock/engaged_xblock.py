@@ -174,8 +174,7 @@ class EngagEDXBlock(XBlock):
                 emails[0],
                 generated_uuid,
                 self.certificate_template_id,
-                data["custom_fields"],
-                'dev-gustavo'
+                data["custom_fields"]
             )
 
             if response.status_code == 200:
