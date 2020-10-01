@@ -21,7 +21,10 @@ function EngagEDXBlock(runtime, element) {
             data: JSON.stringify({"custom_fields": {
                 "lead_full_name": lead_full_name
             }}),
-            success: updateData
+            success: updateData,
+            error: (result) => {
+                runtime.notify('error', {msg: "Não foi possivel gerar seu certificado"})
+            },
         });
         return false;
     }

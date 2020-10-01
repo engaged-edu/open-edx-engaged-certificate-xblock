@@ -5,10 +5,14 @@ from django.template import Context, Template
 from xblock.core import XBlock
 from xblock.fields import Integer, Scope, Boolean, String, Dict
 from xblock.fragment import Fragment
+from xblock.exceptions import JsonHandlerError
+
+from .engaged_custom_module import EngagedCustomModule
 
 import uuid
 
 
+@XBlock.needs('user')
 class EngagEDXBlock(XBlock):
     """
     Esse xblock tem como principal função gerar o certificado para o aluno.
@@ -87,7 +91,8 @@ class EngagEDXBlock(XBlock):
 
         frag = Fragment(html)
         frag.add_css(self.load_resource("static/css/engaged_xblock.css"))
-        frag.add_javascript(self.load_resource("static/js/src/engaged_xblock.js"))
+        frag.add_javascript(self.load_resource(
+            "static/js/src/engaged_xblock.js"))
         frag.initialize_js("EngagEDXBlock")
         return frag
 
@@ -99,7 +104,8 @@ class EngagEDXBlock(XBlock):
             "certificate_page_url": self.certificate_page_url,
             "certificate_template_id": self.certificate_template_id,
         }
-        html = self.render_template("static/html/certificate_studio_view.html", context)
+        html = self.render_template(
+            "static/html/certificate_studio_view.html", context)
 
         frag = Fragment(html)
         frag.add_css(self.load_resource("static/css/engaged_xblock.css"))
@@ -117,10 +123,12 @@ class EngagEDXBlock(XBlock):
             "certificate_page_url": self.certificate_page_url,
             "certificate_template_id": self.certificate_template_id,
         }
-        html = self.render_template("static/html/certificate_author_view.html", context)
+        html = self.render_template(
+            "static/html/certificate_author_view.html", context)
         frag = Fragment(html.format(self=self))
         frag.add_css(self.load_resource("static/css/engaged_xblock.css"))
-        frag.add_javascript(self.load_resource("static/js/src/engaged_xblock.js"))
+        frag.add_javascript(self.load_resource(
+            "static/js/src/engaged_xblock.js"))
         frag.initialize_js("EngagEDXBlock")
         return frag
 
@@ -155,20 +163,47 @@ class EngagEDXBlock(XBlock):
             log.error("Certificate already requested!")
             return {}
 
-        self.certificate_status = "requested"
-        self.certificate_request_id = str(uuid.uuid4())
-        self.certificate_custom_fields = data["custom_fields"]
-        self.certificate_request_template_id = self.certificate_template_id
-        self.request_content_html = (
-            """<p>Certificado solicitado, aguarde e será notificado por e-mail.</p>"""
-        )
-        return {
-            "certificate_status": self.certificate_status,
-            "certificate_request_id": self.certificate_request_id,
-            "certificate_custom_fields": self.certificate_custom_fields,
-            "certificate_request_template_id": self.certificate_template_id,
-            "request_content_html": self.request_content_html,
-        }
+        # try:
+        user_service = self.runtime.service(self, 'user')
+        emails = user_service.get_current_user().emails
+        generated_uuid = uuid.uuid4()
+        if bool(emails) and len(emails) > 0:
+            course_id = self.scope_ids.usage_id.course_key.html_id()
+            response = EngagedCustomModule.request_certificate(
+                course_id,
+                emails[0],
+                generated_uuid,
+                self.certificate_template_id,
+                data["custom_fields"],
+                'dev-gustavo'
+            )
+
+            if response.status_code == 200:
+                self.certificate_status = "requested"
+                self.certificate_request_id = str(generated_uuid)
+                self.certificate_custom_fields = data["custom_fields"]
+                self.certificate_request_template_id = self.certificate_template_id
+                self.request_content_html = (
+                    """<p>Certificado solicitado, aguarde e será notificado por e-mail.</p>"""
+                )
+                return {
+                    "certificate_status": self.certificate_status,
+                    "certificate_request_id": self.certificate_request_id,
+                    "certificate_custom_fields": self.certificate_custom_fields,
+                    "certificate_request_template_id": self.certificate_template_id,
+                    "request_content_html": self.request_content_html,
+                }
+            else:
+                # Informar Erro de retorno da api
+                # JsonHandlerError
+            return
+        else:
+            # Informar para o usuario finalizar o cadastro na plataforma - email
+            # JsonHandlerError
+            return
+        # except:
+        #     JsonHandlerError
+        #     return
 
     @staticmethod
     def workbench_scenarios():
