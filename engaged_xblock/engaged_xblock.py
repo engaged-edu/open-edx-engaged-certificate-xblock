@@ -7,6 +7,8 @@ from xblock.fields import Integer, Scope, Boolean, String, Dict
 from xblock.fragment import Fragment
 from xblock.exceptions import JsonHandlerError
 
+from django.conf import settings
+
 from .engaged_custom_module import EngagedCustomModule
 
 import uuid
@@ -163,46 +165,49 @@ class EngagEDXBlock(XBlock):
             log.error("Certificate already requested!")
             return {}
 
-        # try:
-        user_service = self.runtime.service(self, 'user')
-        emails = user_service.get_current_user().emails
-        generated_uuid = uuid.uuid4()
-        if bool(emails) and len(emails) > 0:
-            course_id = self.scope_ids.usage_id.course_key.html_id()
-            response = EngagedCustomModule.request_certificate(
-                course_id,
-                emails[0],
-                generated_uuid,
-                self.certificate_template_id,
-                data["custom_fields"]
-            )
-
-            if response.status_code == 200:
-                self.certificate_status = "requested"
-                self.certificate_request_id = str(generated_uuid)
-                self.certificate_custom_fields = data["custom_fields"]
-                self.certificate_request_template_id = self.certificate_template_id
-                self.request_content_html = (
-                    """<p>Certificado solicitado, aguarde e será notificado por e-mail.</p>"""
+        try:
+            user_service = self.runtime.service(self, 'user')
+            emails = user_service.get_current_user().emails
+            generated_uuid = uuid.uuid4()
+            if bool(emails) and len(emails) > 0:
+                course_id = self.scope_ids.usage_id.course_key.html_id()
+                response = EngagedCustomModule.request_certificate(
+                    course_id,
+                    emails[0],
+                    generated_uuid,
+                    self.certificate_template_id,
+                    data["custom_fields"]
                 )
-                return {
-                    "certificate_status": self.certificate_status,
-                    "certificate_request_id": self.certificate_request_id,
-                    "certificate_custom_fields": self.certificate_custom_fields,
-                    "certificate_request_template_id": self.certificate_template_id,
-                    "request_content_html": self.request_content_html,
-                }
+
+                if bool(response) and bool(response.status_code) and response.status_code == 200:
+                    self.certificate_status = "requested"
+                    self.certificate_request_id = str(generated_uuid)
+                    self.certificate_custom_fields = data["custom_fields"]
+                    self.certificate_request_template_id = self.certificate_template_id
+                    self.request_content_html = (
+                        """<p>Certificado solicitado, aguarde e será notificado por e-mail.</p>"""
+                    )
+                    return {
+                        "certificate_status": self.certificate_status,
+                        "certificate_request_id": self.certificate_request_id,
+                        "certificate_custom_fields": self.certificate_custom_fields,
+                        "certificate_request_template_id": self.certificate_template_id,
+                        "request_content_html": self.request_content_html,
+                    }
+                else:
+                    raise JsonHandlerError(
+                        message='Ocorreu um erro ao solicitar seu certificado', status_code=400)
+                    return
             else:
-                # Informar Erro de retorno da api
-                # JsonHandlerError
-            return
-        else:
-            # Informar para o usuario finalizar o cadastro na plataforma - email
-            # JsonHandlerError
-            return
-        # except:
-        #     JsonHandlerError
-        #     return
+                raise JsonHandlerError(
+                    message='Para solicitar o certificado, é necessario completar o cadastro', status_code=400)
+                return
+        except JsonHandlerError as e:
+            raise JsonHandlerError(
+                message=e.message, status_code=e.status_code)
+        except Exception as e:
+            raise JsonHandlerError(
+                message='Erro interno ao solicitar o certificado', status_code=500)
 
     @staticmethod
     def workbench_scenarios():

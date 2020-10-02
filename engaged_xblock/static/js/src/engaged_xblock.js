@@ -23,7 +23,15 @@ function EngagEDXBlock(runtime, element) {
             }}),
             success: updateData,
             error: (result) => {
-                runtime.notify('error', {msg: "Não foi possivel gerar seu certificado"})
+                const msg = result.responseJSON && result.responseJSON.error ? result.responseJSON.error : "Não foi possivel gerar seu certificado"
+                var p = document.createElement('p');
+                p.innerHTML = msg;
+                p.id = 'error-message-return'
+                p.classList.add('error')
+                document.getElementById('request-content').appendChild(p);
+                setTimeout(function remove() {
+                    document.getElementById('error-message-return').remove()
+                }, 2500);
             },
         });
         return false;
