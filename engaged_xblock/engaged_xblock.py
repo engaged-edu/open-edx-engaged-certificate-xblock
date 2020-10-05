@@ -7,8 +7,6 @@ from xblock.fields import Integer, Scope, Boolean, String, Dict
 from xblock.fragment import Fragment
 from xblock.exceptions import JsonHandlerError
 
-from django.conf import settings
-
 from .engaged_custom_module import EngagedCustomModule
 
 import uuid

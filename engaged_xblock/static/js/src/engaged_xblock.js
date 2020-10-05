@@ -4,6 +4,7 @@ function EngagEDXBlock(runtime, element) {
     var handlerUrl = runtime.handlerUrl(element, 'request_certificate');
 
     function updateData(result) {
+        document.getElementById('request-loader').remove()
         $('#request-content', element).html(result.request_content_html);
     }
 
