@@ -29,6 +29,11 @@ class EngagEDXBlock(XBlock):
         default="Não especificado",
         scope=Scope.settings,
     )
+    certificate_lead_name_max_length = Integer(
+        help="Tamanho máximo do input do nome do lead",
+        default=32,
+        scope=Scope.settings,
+    )
     # Campos especificos do aluno
     certificate_status = String(
         help="Estado do certificado do aluno, variando entre não solicitado/solicitado",
@@ -54,7 +59,7 @@ class EngagEDXBlock(XBlock):
         help="HTML apresentado antes de ter solicitado o certificado, utilizado em uma variavel para poder atualizar",
         default="""
             <div class="flex-center">
-                <input class="input-width input-margin" type="text" id="student-name" placeholder="Seu nome para o certificado" maxlength="32" required />
+                <input class="input-width input-margin" type="text" id="student-name" placeholder="Seu nome para o certificado" maxlength="{}" required />
             </div>
             <button id="submit-certificate-form" type="submit" class="request-certificate">Solicitar Certificado</button>
         """,
@@ -103,6 +108,7 @@ class EngagEDXBlock(XBlock):
         context = {
             "certificate_page_url": self.certificate_page_url,
             "certificate_template_id": self.certificate_template_id,
+            "certificate_lead_name_max_length": self.certificate_lead_name_max_length
         }
         html = self.render_template(
             "static/html/certificate_studio_view.html", context)
@@ -122,6 +128,7 @@ class EngagEDXBlock(XBlock):
         context = {
             "certificate_page_url": self.certificate_page_url,
             "certificate_template_id": self.certificate_template_id,
+            "certificate_lead_name_max_length": self.certificate_lead_name_max_length
         }
         html = self.render_template(
             "static/html/certificate_author_view.html", context)
@@ -138,7 +145,7 @@ class EngagEDXBlock(XBlock):
         Retorna informações do componente.
         """
         return {
-            "request_content_html": self.request_content_html,
+            "request_content_html": self.request_content_html.format(self.certificate_lead_name_max_length),
         }
 
     @XBlock.json_handler
@@ -148,9 +155,11 @@ class EngagEDXBlock(XBlock):
         """
         self.certificate_page_url = data["certificate_page_url"]
         self.certificate_template_id = data["certificate_template_id"]
+        self.certificate_lead_name_max_length = data["certificate_lead_name_max_length"]
         return {
             "certificate_page_url": self.certificate_page_url,
             "certificate_template_id": self.certificate_template_id,
+            "certificate_lead_name_max_length": self.certificate_lead_name_max_length
         }
 
     @XBlock.json_handler
