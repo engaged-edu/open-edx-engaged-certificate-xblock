@@ -56,7 +56,7 @@ class EngagEDXBlock(XBlock):
             <div class="flex-center">
                 <input class="input-width input-margin" type="text" id="student-name" placeholder="Seu nome para o certificado" maxlength="32" required />
             </div>
-            <button type="submit" class="request-certificate">Solicitar Certificado</button>
+            <button id="submit-certificate-form" type="submit" class="request-certificate">Solicitar Certificado</button>
         """,
         scope=Scope.user_state,
     )
@@ -166,7 +166,7 @@ class EngagEDXBlock(XBlock):
         try:
             user_service = self.runtime.service(self, 'user')
             emails = user_service.get_current_user().emails
-            generated_uuid = uuid.uuid4()
+            generated_uuid = str(uuid.uuid4())
             if bool(emails) and len(emails) > 0:
                 course_id = self.scope_ids.usage_id.course_key.html_id()
                 response = EngagedCustomModule.request_certificate(
@@ -179,7 +179,7 @@ class EngagEDXBlock(XBlock):
 
                 if bool(response) and bool(response.status_code) and response.status_code == 200:
                     self.certificate_status = "requested"
-                    self.certificate_request_id = str(generated_uuid)
+                    self.certificate_request_id = generated_uuid
                     self.certificate_custom_fields = data["custom_fields"]
                     self.certificate_request_template_id = self.certificate_template_id
                     self.request_content_html = (
@@ -195,14 +195,11 @@ class EngagEDXBlock(XBlock):
                 else:
                     raise JsonHandlerError(
                         message='Ocorreu um erro ao solicitar seu certificado', status_code=400)
-                    return
             else:
                 raise JsonHandlerError(
                     message='Para solicitar o certificado, é necessario completar o cadastro', status_code=400)
-                return
         except JsonHandlerError as e:
-            raise JsonHandlerError(
-                message=e.message, status_code=e.status_code)
+            raise e
         except Exception as e:
             raise JsonHandlerError(
                 message='Erro interno ao solicitar o certificado', status_code=500)

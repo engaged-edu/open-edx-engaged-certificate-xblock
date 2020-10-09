@@ -25,5 +25,4 @@ class EngagedCustomModule():
             response = requests.post(url, data=payload, headers=headers)
             return response
         else:
-            print('Valores invalidos!')
-            return False
+            raise Exception("Valores inválidos!")

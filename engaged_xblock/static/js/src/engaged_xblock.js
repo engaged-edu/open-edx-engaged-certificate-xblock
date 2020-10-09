@@ -15,6 +15,7 @@ function EngagEDXBlock(runtime, element) {
 
     function request_certificate(e) {
         e.preventDefault();
+        document.getElementById('submit-certificate-form').disabled = true;
         const lead_full_name = $('#student-name').val();
         const requestContent = document.getElementById('request-content');
         $.ajax({
@@ -38,6 +39,7 @@ function EngagEDXBlock(runtime, element) {
                 p.classList.add('error')
                 document.getElementById('request-loader').remove()
                 requestContent.appendChild(p);
+                document.getElementById('submit-certificate-form').disabled = false;
                 setTimeout(function remove() {
                     document.getElementById('error-message-return').remove()
                 }, 2500);
