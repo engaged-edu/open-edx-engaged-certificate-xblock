@@ -26,10 +26,13 @@ def package_data(pkg, roots):
 setup(
     name="engaged_xblock-xblock",
     version="0.1",
-    description="EngagED XBlock to generate Certificates",  # TODO: write a better description.
-    license="AGPL v3",  # TODO: choose a license: 'AGPL v3' and 'Apache 2.0' are popular.
-    packages=["engaged_xblock",],
-    install_requires=["XBlock",],
-    entry_points={"xblock.v1": ["engaged_xblock = engaged_xblock:EngagEDXBlock",]},
+    # TODO: write a better description.
+    description="EngagED XBlock to generate Certificates",
+    # TODO: choose a license: 'AGPL v3' and 'Apache 2.0' are popular.
+    license="AGPL v3",
+    packages=["engaged_xblock"],
+    install_requires=["XBlock", "requests"],
+    entry_points={"xblock.v1": [
+        "engaged_xblock = engaged_xblock:EngagEDXBlock", ]},
     package_data=package_data("engaged_xblock", ["static", "public"]),
 )

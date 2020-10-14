@@ -5,10 +5,14 @@ from django.template import Context, Template
 from xblock.core import XBlock
 from xblock.fields import Integer, Scope, Boolean, String, Dict
 from xblock.fragment import Fragment
+from xblock.exceptions import JsonHandlerError
+
+from .engaged_custom_module import EngagedCustomModule
 
 import uuid
 
 
+@XBlock.needs('user')
 class EngagEDXBlock(XBlock):
     """
     Esse xblock tem como principal função gerar o certificado para o aluno.
@@ -23,6 +27,11 @@ class EngagEDXBlock(XBlock):
     certificate_template_id = String(
         help="Id do template do certificado que será utilizado para os alunos",
         default="Não especificado",
+        scope=Scope.settings,
+    )
+    certificate_lead_name_max_length = Integer(
+        help="Tamanho máximo do input do nome do lead",
+        default=32,
         scope=Scope.settings,
     )
     # Campos especificos do aluno
@@ -50,9 +59,9 @@ class EngagEDXBlock(XBlock):
         help="HTML apresentado antes de ter solicitado o certificado, utilizado em uma variavel para poder atualizar",
         default="""
             <div class="flex-center">
-                <input class="input-width input-margin" type="text" id="student-name" placeholder="Seu nome para o certificado" maxlength="32" required />
+                <input class="input-width input-margin" type="text" id="student-name" placeholder="Seu nome para o certificado" maxlength="{}" required />
             </div>
-            <button type="submit" class="request-certificate">Solicitar Certificado</button>
+            <button id="submit-certificate-form" type="submit" class="request-certificate">Solicitar Certificado</button>
         """,
         scope=Scope.user_state,
     )
@@ -87,7 +96,8 @@ class EngagEDXBlock(XBlock):
 
         frag = Fragment(html)
         frag.add_css(self.load_resource("static/css/engaged_xblock.css"))
-        frag.add_javascript(self.load_resource("static/js/src/engaged_xblock.js"))
+        frag.add_javascript(self.load_resource(
+            "static/js/src/engaged_xblock.js"))
         frag.initialize_js("EngagEDXBlock")
         return frag
 
@@ -98,8 +108,10 @@ class EngagEDXBlock(XBlock):
         context = {
             "certificate_page_url": self.certificate_page_url,
             "certificate_template_id": self.certificate_template_id,
+            "certificate_lead_name_max_length": self.certificate_lead_name_max_length
         }
-        html = self.render_template("static/html/certificate_studio_view.html", context)
+        html = self.render_template(
+            "static/html/certificate_studio_view.html", context)
 
         frag = Fragment(html)
         frag.add_css(self.load_resource("static/css/engaged_xblock.css"))
@@ -116,11 +128,14 @@ class EngagEDXBlock(XBlock):
         context = {
             "certificate_page_url": self.certificate_page_url,
             "certificate_template_id": self.certificate_template_id,
+            "certificate_lead_name_max_length": self.certificate_lead_name_max_length
         }
-        html = self.render_template("static/html/certificate_author_view.html", context)
+        html = self.render_template(
+            "static/html/certificate_author_view.html", context)
         frag = Fragment(html.format(self=self))
         frag.add_css(self.load_resource("static/css/engaged_xblock.css"))
-        frag.add_javascript(self.load_resource("static/js/src/engaged_xblock.js"))
+        frag.add_javascript(self.load_resource(
+            "static/js/src/engaged_xblock.js"))
         frag.initialize_js("EngagEDXBlock")
         return frag
 
@@ -130,7 +145,7 @@ class EngagEDXBlock(XBlock):
         Retorna informações do componente.
         """
         return {
-            "request_content_html": self.request_content_html,
+            "request_content_html": self.request_content_html.format(self.certificate_lead_name_max_length),
         }
 
     @XBlock.json_handler
@@ -140,9 +155,11 @@ class EngagEDXBlock(XBlock):
         """
         self.certificate_page_url = data["certificate_page_url"]
         self.certificate_template_id = data["certificate_template_id"]
+        self.certificate_lead_name_max_length = data["certificate_lead_name_max_length"]
         return {
             "certificate_page_url": self.certificate_page_url,
             "certificate_template_id": self.certificate_template_id,
+            "certificate_lead_name_max_length": self.certificate_lead_name_max_length
         }
 
     @XBlock.json_handler
@@ -155,20 +172,46 @@ class EngagEDXBlock(XBlock):
             log.error("Certificate already requested!")
             return {}
 
-        self.certificate_status = "requested"
-        self.certificate_request_id = str(uuid.uuid4())
-        self.certificate_custom_fields = data["custom_fields"]
-        self.certificate_request_template_id = self.certificate_template_id
-        self.request_content_html = (
-            """<p>Certificado solicitado, aguarde e será notificado por e-mail.</p>"""
-        )
-        return {
-            "certificate_status": self.certificate_status,
-            "certificate_request_id": self.certificate_request_id,
-            "certificate_custom_fields": self.certificate_custom_fields,
-            "certificate_request_template_id": self.certificate_template_id,
-            "request_content_html": self.request_content_html,
-        }
+        try:
+            user_service = self.runtime.service(self, 'user')
+            emails = user_service.get_current_user().emails
+            generated_uuid = str(uuid.uuid4())
+            if bool(emails) and len(emails) > 0:
+                course_id = self.scope_ids.usage_id.course_key.html_id()
+                response = EngagedCustomModule.request_certificate(
+                    course_id,
+                    emails[0],
+                    generated_uuid,
+                    self.certificate_template_id,
+                    data["custom_fields"]
+                )
+
+                if bool(response) and bool(response.status_code) and response.status_code == 200:
+                    self.certificate_status = "requested"
+                    self.certificate_request_id = generated_uuid
+                    self.certificate_custom_fields = data["custom_fields"]
+                    self.certificate_request_template_id = self.certificate_template_id
+                    self.request_content_html = (
+                        """<p>Certificado solicitado, aguarde e será notificado por e-mail.</p>"""
+                    )
+                    return {
+                        "certificate_status": self.certificate_status,
+                        "certificate_request_id": self.certificate_request_id,
+                        "certificate_custom_fields": self.certificate_custom_fields,
+                        "certificate_request_template_id": self.certificate_template_id,
+                        "request_content_html": self.request_content_html,
+                    }
+                else:
+                    raise JsonHandlerError(
+                        message='Ocorreu um erro ao solicitar seu certificado', status_code=400)
+            else:
+                raise JsonHandlerError(
+                    message='Para solicitar o certificado, é necessario completar o cadastro', status_code=400)
+        except JsonHandlerError as e:
+            raise e
+        except Exception as e:
+            raise JsonHandlerError(
+                message='Erro interno ao solicitar o certificado', status_code=500)
 
     @staticmethod
     def workbench_scenarios():
