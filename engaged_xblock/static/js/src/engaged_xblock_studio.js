@@ -16,11 +16,12 @@ function EngagEDXBlock(runtime, element) {
         e.preventDefault();
         const certificate_page_url = $('#certificate_page_url').val();
         const certificate_template_id = $('#certificate_template_id').val();
+        const certificate_lead_name_max_length = $('#certificate_lead_name_max_length').val();
         runtime.notify('save', {state: 'start'});
         $.ajax({
             type: "POST",
             url: handlerUrl,
-            data: JSON.stringify({certificate_page_url, certificate_template_id}),
+            data: JSON.stringify({certificate_page_url, certificate_template_id, certificate_lead_name_max_length}),
             success: (result) => {
                 runtime.notify('save', {state: 'end'});
                 setTimeout(function(){
