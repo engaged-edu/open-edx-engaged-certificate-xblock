@@ -25,7 +25,7 @@ def package_data(pkg, roots):
 
 setup(
     name="engaged_xblock-xblock",
-    version="0.1",
+    version="1.1.0",
     # TODO: write a better description.
     description="EngagED XBlock to generate Certificates",
     # TODO: choose a license: 'AGPL v3' and 'Apache 2.0' are popular.
