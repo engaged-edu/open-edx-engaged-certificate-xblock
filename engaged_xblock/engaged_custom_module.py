@@ -1,5 +1,6 @@
 import requests
 from django.conf import settings
+import json
 
 
 class EngagedCustomModule():
@@ -17,7 +18,7 @@ class EngagedCustomModule():
                 'ead_user_email_address': ead_user_email_address,
                 'certificate_id': certificate_id,
                 'certificate_template_id': certificate_template_id,
-                'certificate_custom_fields': certificate_custom_fields,
+                'certificate_custom_fields': json.dumps(certificate_custom_fields),
                 'ead_server_identifier': settings.ENGAGED_SERVER_IDENTIFIER
             }
             url = settings.ENGAGED_CORE_API_EMIT_CERTIFICATE_URL
